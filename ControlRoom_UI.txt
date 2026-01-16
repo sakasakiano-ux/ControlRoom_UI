@@ -1,1 +1,192 @@
-Add ControlRoom UI script
+--[[ 
+    ControlRoom UI
+    Author : L0RDKIDD_TXT
+]]
+
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+local LP = Players.LocalPlayer
+
+local SelectedTarget = nil
+
+-- ================== DRAG FUNCTION ==================
+local function makeDraggable(frame)
+    local dragging, dragStart, startPos
+
+    frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+        end
+    end)
+
+    frame.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+
+    UIS.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            frame.Position = UDim2.new(
+                startPos.X.Scale,
+                startPos.X.Offset + delta.X,
+                startPos.Y.Scale,
+                startPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+end
+
+-- ================== GUI 1 : TARGET ==================
+local ScreenGui = Instance.new("ScreenGui", LP.PlayerGui)
+ScreenGui.Name = "ControlRoom_GUI"
+
+local Main = Instance.new("Frame", ScreenGui)
+Main.Size = UDim2.new(0, 320, 0, 360)
+Main.Position = UDim2.new(0.5, -160, 0.5, -180)
+Main.BackgroundColor3 = Color3.fromRGB(30,30,30)
+Main.BorderSizePixel = 0
+makeDraggable(Main)
+
+local Title = Instance.new("TextLabel", Main)
+Title.Size = UDim2.new(1,0,0,45)
+Title.BackgroundColor3 = Color3.fromRGB(90,0,150)
+Title.Text = "ControlRoom | Target"
+Title.TextColor3 = Color3.new(1,1,1)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 18
+
+local TargetLabel = Instance.new("TextLabel", Main)
+TargetLabel.Position = UDim2.new(0,10,0,55)
+TargetLabel.Size = UDim2.new(1,-20,0,35)
+TargetLabel.BackgroundColor3 = Color3.fromRGB(45,45,45)
+TargetLabel.Text = "Target : NONE"
+TargetLabel.TextColor3 = Color3.new(1,1,1)
+TargetLabel.Font = Enum.Font.Gotham
+TargetLabel.TextSize = 14
+
+local ListFrame = Instance.new("ScrollingFrame", Main)
+ListFrame.Position = UDim2.new(0,10,0,100)
+ListFrame.Size = UDim2.new(1,-20,0,200)
+ListFrame.CanvasSize = UDim2.new(0,0,0,0)
+ListFrame.ScrollBarImageTransparency = 0.3
+ListFrame.BackgroundTransparency = 1
+
+local UIList = Instance.new("UIListLayout", ListFrame)
+UIList.Padding = UDim.new(0,6)
+
+UIList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    ListFrame.CanvasSize = UDim2.new(0,0,0,UIList.AbsoluteContentSize.Y + 10)
+end)
+
+-- ================== PLAYER LIST ==================
+local function refreshPlayers()
+    for _,v in pairs(ListFrame:GetChildren()) do
+        if v:IsA("TextButton") then
+            v:Destroy()
+        end
+    end
+
+    for _,plr in pairs(Players:GetPlayers()) do
+        if plr ~= LP then
+            local btn = Instance.new("TextButton", ListFrame)
+            btn.Size = UDim2.new(1,0,0,32)
+            btn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+            btn.Text = plr.Name
+            btn.TextColor3 = Color3.new(1,1,1)
+            btn.Font = Enum.Font.Gotham
+            btn.TextSize = 14
+
+            btn.MouseButton1Click:Connect(function()
+                SelectedTarget = plr
+                TargetLabel.Text = "Target : "..plr.Name
+            end)
+        end
+    end
+end
+
+refreshPlayers()
+Players.PlayerAdded:Connect(refreshPlayers)
+Players.PlayerRemoving:Connect(refreshPlayers)
+
+-- ================== OPEN CONTROL BUTTON ==================
+local OpenBtn = Instance.new("TextButton", Main)
+OpenBtn.Position = UDim2.new(0,10,1,-45)
+OpenBtn.Size = UDim2.new(1,-20,0,35)
+OpenBtn.BackgroundColor3 = Color3.fromRGB(0,170,0)
+OpenBtn.Text = "OPEN CONTROL"
+OpenBtn.TextColor3 = Color3.new(1,1,1)
+OpenBtn.Font = Enum.Font.GothamBold
+OpenBtn.TextSize = 15
+
+-- ================== GUI 2 : CONTROL ==================
+OpenBtn.MouseButton1Click:Connect(function()
+    if not SelectedTarget then return end
+
+    if ScreenGui:FindFirstChild("ControlPanel") then
+        ScreenGui.ControlPanel:Destroy()
+    end
+
+    local Control = Instance.new("Frame", ScreenGui)
+    Control.Name = "ControlPanel"
+    Control.Size = UDim2.new(0,300,0,220)
+    Control.Position = UDim2.new(0.5,-150,0.5,-110)
+    Control.BackgroundColor3 = Color3.fromRGB(25,25,25)
+    Control.BorderSizePixel = 0
+    makeDraggable(Control)
+
+    local CT = Instance.new("TextLabel", Control)
+    CT.Size = UDim2.new(1,0,0,40)
+    CT.BackgroundColor3 = Color3.fromRGB(150,0,0)
+    CT.Text = "ControlRoom | By : L0RDKIDD_TXT"
+    CT.TextColor3 = Color3.new(1,1,1)
+    CT.Font = Enum.Font.GothamBold
+    CT.TextSize = 14
+
+    local NameLabel = Instance.new("TextLabel", Control)
+    NameLabel.Position = UDim2.new(0,10,0,50)
+    NameLabel.Size = UDim2.new(1,-20,0,30)
+    NameLabel.BackgroundTransparency = 1
+    NameLabel.Text = "Target : "..SelectedTarget.Name
+    NameLabel.TextColor3 = Color3.new(1,1,1)
+    NameLabel.Font = Enum.Font.Gotham
+    NameLabel.TextSize = 14
+
+    local Line = Instance.new("Frame", Control)
+    Line.Position = UDim2.new(0,10,0,85)
+    Line.Size = UDim2.new(1,-20,0,2)
+    Line.BackgroundColor3 = Color3.fromRGB(90,90,90)
+
+    local FlingBtn = Instance.new("TextButton", Control)
+    FlingBtn.Position = UDim2.new(0,10,0,100)
+    FlingBtn.Size = UDim2.new(1,-20,0,40)
+    FlingBtn.BackgroundColor3 = Color3.fromRGB(0,150,0)
+    FlingBtn.Text = "FLING TARGET"
+    FlingBtn.TextColor3 = Color3.new(1,1,1)
+    FlingBtn.Font = Enum.Font.GothamBold
+    FlingBtn.TextSize = 15
+
+    -- PLACEHOLDER
+    FlingBtn.MouseButton1Click:Connect(function()
+        warn("FLING pressed for", SelectedTarget.Name)
+    end)
+
+    local DestroyBtn = Instance.new("TextButton", Control)
+    DestroyBtn.Position = UDim2.new(0,10,1,-45)
+    DestroyBtn.Size = UDim2.new(1,-20,0,35)
+    DestroyBtn.BackgroundColor3 = Color3.fromRGB(170,0,0)
+    DestroyBtn.Text = "DESTROY"
+    DestroyBtn.TextColor3 = Color3.new(1,1,1)
+    DestroyBtn.Font = Enum.Font.GothamBold
+    DestroyBtn.TextSize = 14
+
+    DestroyBtn.MouseButton1Click:Connect(function()
+        Control:Destroy()
+    end)
+end)
