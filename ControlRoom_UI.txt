@@ -1,192 +1,205 @@
---[[ 
-    ControlRoom UI
-    Author : L0RDKIDD_TXT
-]]
-
 local Players = game:GetService("Players")
-local UIS = game:GetService("UserInputService")
-local LP = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
 
-local SelectedTarget = nil
+local Gui = Instance.new("ScreenGui", gethui())
+Gui.Name = "ControlRoom_V20"
 
--- ================== DRAG FUNCTION ==================
-local function makeDraggable(frame)
-    local dragging, dragStart, startPos
+local Main = Instance.new("Frame", Gui)
+Main.Size = UDim2.new(0, 260, 0, 125)
+Main.Position = UDim2.new(0.5, -130, 0.5, -82)
+Main.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+Main.Active = true
+Main.Draggable = true
+Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 10)
 
-    frame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1
-        or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-            dragStart = input.Position
-            startPos = frame.Position
-        end
-    end)
-
-    frame.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1
-        or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = false
-        end
-    end)
-
-    UIS.InputChanged:Connect(function(input)
-        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement
-        or input.UserInputType == Enum.UserInputType.Touch) then
-            local delta = input.Position - dragStart
-            frame.Position = UDim2.new(
-                startPos.X.Scale,
-                startPos.X.Offset + delta.X,
-                startPos.Y.Scale,
-                startPos.Y.Offset + delta.Y
-            )
-        end
-    end)
-end
-
--- ================== GUI 1 : TARGET ==================
-local ScreenGui = Instance.new("ScreenGui", LP.PlayerGui)
-ScreenGui.Name = "ControlRoom_GUI"
-
-local Main = Instance.new("Frame", ScreenGui)
-Main.Size = UDim2.new(0, 320, 0, 360)
-Main.Position = UDim2.new(0.5, -160, 0.5, -180)
-Main.BackgroundColor3 = Color3.fromRGB(30,30,30)
-Main.BorderSizePixel = 0
-makeDraggable(Main)
+local EveryoneButton = Instance.new("TextButton", Main)
+EveryoneButton.Size = UDim2.new(0, 130, 0, 25)
+EveryoneButton.Position = UDim2.new(0, 3, 0, -9)
+EveryoneButton.BackgroundColor3 = Color3.fromRGB(100, 0, 200)
+EveryoneButton.Text = "T4rget To Everyone"
+EveryoneButton.TextColor3 = Color3.new(1, 1, 1)
+EveryoneButton.Font = Enum.Font.GothamBold
+EveryoneButton.TextSize = 13
+EveryoneButton.ZIndex = 5
+Instance.new("UICorner", EveryoneButton).CornerRadius = UDim.new(0, 5)
 
 local Title = Instance.new("TextLabel", Main)
-Title.Size = UDim2.new(1,0,0,45)
-Title.BackgroundColor3 = Color3.fromRGB(90,0,150)
-Title.Text = "ControlRoom | Target"
-Title.TextColor3 = Color3.new(1,1,1)
+Title.Size = UDim2.new(1, 0, 0, 50)
+Title.BackgroundColor3 = Color3.fromRGB(145, 0, 0)
+Title.Text = "Controlro0m | by : X0zers89_plx"
+Title.TextColor3 = Color3.new(1, 1, 1)
 Title.Font = Enum.Font.GothamBold
-Title.TextSize = 18
+Title.TextSize = 14
+Instance.new("UICorner", Title)
 
-local TargetLabel = Instance.new("TextLabel", Main)
-TargetLabel.Position = UDim2.new(0,10,0,55)
-TargetLabel.Size = UDim2.new(1,-20,0,35)
-TargetLabel.BackgroundColor3 = Color3.fromRGB(45,45,45)
-TargetLabel.Text = "Target : NONE"
-TargetLabel.TextColor3 = Color3.new(1,1,1)
-TargetLabel.Font = Enum.Font.Gotham
-TargetLabel.TextSize = 14
+-- 🟩 KOTAK USERNAME (DIUBAH JADI HIJAU)
+local Box = Instance.new("TextBox", Main)
+Box.Size = UDim2.new(0.9, 0, 0, 50)
+Box.Position = UDim2.new(0.05, 0, 0.3, 0)
+Box.BackgroundColor3 = Color3.fromRGB(0, 170, 0) -- HIJAU
+Box.PlaceholderText = "T4rget here.."
+Box.Text = ""
+Box.TextColor3 = Color3.new(1, 1, 1)
+Box.Font = Enum.Font.GothamSemibold
+Box.TextSize = 17
+Instance.new("UICorner", Box).CornerRadius = UDim.new(0, 6)
 
-local ListFrame = Instance.new("ScrollingFrame", Main)
-ListFrame.Position = UDim2.new(0,10,0,100)
-ListFrame.Size = UDim2.new(1,-20,0,200)
-ListFrame.CanvasSize = UDim2.new(0,0,0,0)
-ListFrame.ScrollBarImageTransparency = 0.3
-ListFrame.BackgroundTransparency = 1
+-- 🟩 TOMBOL (AWAL BIRU, KLIK JADI HIJAU)
+local Button = Instance.new("TextButton", Main)
+Button.Size = UDim2.new(0.9, 0, 0, 45)
+Button.Position = UDim2.new(0.05, 0, 0.65, 0)
+Button.BackgroundColor3 = Color3.fromRGB(0, 0, 255)
+Button.Text = "Kill | Off"
+Button.TextColor3 = Color3.new(1, 1, 1)
+Button.TextSize = 18
+Button.Font = Enum.Font.GothamBold
+Instance.new("UICorner", Button).CornerRadius = UDim.new(0, 8)
 
-local UIList = Instance.new("UIListLayout", ListFrame)
-UIList.Padding = UDim.new(0,6)
+local LocalPlayer = Players.LocalPlayer
+local targetPlayer 
+local targetPart
+local active = false
+local evActive = false
 
-UIList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    ListFrame.CanvasSize = UDim2.new(0,0,0,UIList.AbsoluteContentSize.Y + 10)
-end)
+local Folder = Instance.new("Folder", Workspace)
+local Part = Instance.new("Part", Folder)
+Part.Anchored = true; Part.Transparency = 1; Part.CanCollide = false
+local Attachment1 = Instance.new("Attachment", Part)
 
--- ================== PLAYER LIST ==================
-local function refreshPlayers()
-    for _,v in pairs(ListFrame:GetChildren()) do
-        if v:IsA("TextButton") then
-            v:Destroy()
-        end
-    end
+if not getgenv().Network then
+    getgenv().Network = {BaseParts = {}, Velocity = Vector3.new(10000, 10000, 10000)}
+    RunService.Heartbeat:Connect(function()
+        pcall(function()
+            sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge)
+            for _,p in pairs(getgenv().Network.BaseParts) do
+                if p:IsDescendantOf(Workspace) then 
+                    p.Velocity = getgenv().Network.Velocity 
+                end
+            end
+        end)
+    end)
+end
 
-    for _,plr in pairs(Players:GetPlayers()) do
-        if plr ~= LP then
-            local btn = Instance.new("TextButton", ListFrame)
-            btn.Size = UDim2.new(1,0,0,32)
-            btn.BackgroundColor3 = Color3.fromRGB(50,50,50)
-            btn.Text = plr.Name
-            btn.TextColor3 = Color3.new(1,1,1)
-            btn.Font = Enum.Font.Gotham
-            btn.TextSize = 14
-
-            btn.MouseButton1Click:Connect(function()
-                SelectedTarget = plr
-                TargetLabel.Text = "Target : "..plr.Name
-            end)
-        end
+local function ForcePart(v)
+    if v:IsA("BasePart") and not v.Anchored 
+    and not v.Parent:FindFirstChildOfClass("Humanoid") 
+    and v.Name ~= "Handle" and not v.Parent:IsA("Tool")
+    and not v:IsDescendantOf(LocalPlayer.Character) then
+        pcall(function()
+            v.CanCollide = false
+            if not table.find(getgenv().Network.BaseParts, v) then
+                table.insert(getgenv().Network.BaseParts, v)
+            end
+            local att = v:FindFirstChild("J_Att") or Instance.new("Attachment", v)
+            att.Name = "J_Att"
+            
+            local torque = v:FindFirstChild("J_Torque") or Instance.new("Torque", v)
+            torque.Name = "J_Torque"
+            torque.Attachment0 = att
+            torque.Torque = Vector3.new(1e10, 1e10, 1e10) 
+            
+            local align = v:FindFirstChild("J_Align") or Instance.new("AlignPosition", v)
+            align.Name = "J_Align"
+            align.Attachment0 = att; align.Attachment1 = Attachment1
+            align.MaxForce = math.huge
+            align.MaxVelocity = math.huge
+            align.Responsiveness = 500 
+        end)
     end
 end
 
-refreshPlayers()
-Players.PlayerAdded:Connect(refreshPlayers)
-Players.PlayerRemoving:Connect(refreshPlayers)
+local renderConn
+local function Enable()
+    if active then return end
+    active = true
+    Button.Text = "kill | on"
+    Button.BackgroundColor3 = Color3.fromRGB(0, 170, 0) -- jadi hijau saat ON
+    
+    task.spawn(function()
+        while active do
+            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                for _,v in ipairs(Workspace:GetDescendants()) do
+                    if v:IsA("BasePart") and not v.Anchored then
+                        ForcePart(v)
+                    end
+                end
+            end
+            task.wait(1.5)
+        end
+    end)
 
--- ================== OPEN CONTROL BUTTON ==================
-local OpenBtn = Instance.new("TextButton", Main)
-OpenBtn.Position = UDim2.new(0,10,1,-45)
-OpenBtn.Size = UDim2.new(1,-20,0,35)
-OpenBtn.BackgroundColor3 = Color3.fromRGB(0,170,0)
-OpenBtn.Text = "OPEN CONTROL"
-OpenBtn.TextColor3 = Color3.new(1,1,1)
-OpenBtn.Font = Enum.Font.GothamBold
-OpenBtn.TextSize = 15
+    renderConn = RunService.RenderStepped:Connect(function()
+        if targetPlayer and targetPlayer.Character then
+            local root = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if root then targetPart = root end
+        end
 
--- ================== GUI 2 : CONTROL ==================
-OpenBtn.MouseButton1Click:Connect(function()
-    if not SelectedTarget then return end
+        if targetPart and targetPart.Parent then 
+            Attachment1.WorldPosition = targetPart.Position + Vector3.new(math.random(-1,1), 0, math.random(-1,1))
+        end
+    end)
+end
 
-    if ScreenGui:FindFirstChild("ControlPanel") then
-        ScreenGui.ControlPanel:Destroy()
+local function Disable()
+    active = false
+    Button.Text = "kill | off"
+    Button.BackgroundColor3 = Color3.fromRGB(0, 0, 255) -- balik biru saat OFF
+    if renderConn then renderConn:Disconnect() end
+end
+
+Button.MouseButton1Click:Connect(function()
+    if active then Disable() else Enable() end
+end)
+
+Box.FocusLost:Connect(function(enter)
+    if enter then
+        for _,p in ipairs(Players:GetPlayers()) do
+            if p.Name:lower():find(Box.Text:lower()) or p.DisplayName:lower():find(Box.Text:lower()) then
+                Box.Text = p.Name
+                targetPlayer = p 
+                targetPart = p.Character and p.Character:FindFirstChild("HumanoidRootPart")
+                break
+            end
+        end
     end
+end)
 
-    local Control = Instance.new("Frame", ScreenGui)
-    Control.Name = "ControlPanel"
-    Control.Size = UDim2.new(0,300,0,220)
-    Control.Position = UDim2.new(0.5,-150,0.5,-110)
-    Control.BackgroundColor3 = Color3.fromRGB(25,25,25)
-    Control.BorderSizePixel = 0
-    makeDraggable(Control)
+EveryoneButton.MouseButton1Click:Connect(function()
+    if evActive then 
+        evActive = false
+        EveryoneButton.Text = "T4rget To Everyone"
+        Disable()
+    else
+        evActive = true
+        EveryoneButton.Text = "T4rget To Everyone"
+        task.spawn(function()
+            while evActive do
+                for _,plr in ipairs(Players:GetPlayers()) do
+                    if not evActive then break end
+                    if plr ~= LocalPlayer and plr.Character then
+                        local root = plr.Character:FindFirstChild("HumanoidRootPart")
+                        if root then
+                            targetPlayer = plr 
+                            targetPart = root
+                            Enable()
+                            task.wait(1.2)
+                        end
+                    end
+                end
+                task.wait(0.1)
+            end
+        end)
+    end
+end)
 
-    local CT = Instance.new("TextLabel", Control)
-    CT.Size = UDim2.new(1,0,0,40)
-    CT.BackgroundColor3 = Color3.fromRGB(150,0,0)
-    CT.Text = "ControlRoom | By : L0RDKIDD_TXT"
-    CT.TextColor3 = Color3.new(1,1,1)
-    CT.Font = Enum.Font.GothamBold
-    CT.TextSize = 14
-
-    local NameLabel = Instance.new("TextLabel", Control)
-    NameLabel.Position = UDim2.new(0,10,0,50)
-    NameLabel.Size = UDim2.new(1,-20,0,30)
-    NameLabel.BackgroundTransparency = 1
-    NameLabel.Text = "Target : "..SelectedTarget.Name
-    NameLabel.TextColor3 = Color3.new(1,1,1)
-    NameLabel.Font = Enum.Font.Gotham
-    NameLabel.TextSize = 14
-
-    local Line = Instance.new("Frame", Control)
-    Line.Position = UDim2.new(0,10,0,85)
-    Line.Size = UDim2.new(1,-20,0,2)
-    Line.BackgroundColor3 = Color3.fromRGB(90,90,90)
-
-    local FlingBtn = Instance.new("TextButton", Control)
-    FlingBtn.Position = UDim2.new(0,10,0,100)
-    FlingBtn.Size = UDim2.new(1,-20,0,40)
-    FlingBtn.BackgroundColor3 = Color3.fromRGB(0,150,0)
-    FlingBtn.Text = "FLING TARGET"
-    FlingBtn.TextColor3 = Color3.new(1,1,1)
-    FlingBtn.Font = Enum.Font.GothamBold
-    FlingBtn.TextSize = 15
-
-    -- PLACEHOLDER
-    FlingBtn.MouseButton1Click:Connect(function()
-        warn("FLING pressed for", SelectedTarget.Name)
-    end)
-
-    local DestroyBtn = Instance.new("TextButton", Control)
-    DestroyBtn.Position = UDim2.new(0,10,1,-45)
-    DestroyBtn.Size = UDim2.new(1,-20,0,35)
-    DestroyBtn.BackgroundColor3 = Color3.fromRGB(170,0,0)
-    DestroyBtn.Text = "DESTROY"
-    DestroyBtn.TextColor3 = Color3.new(1,1,1)
-    DestroyBtn.Font = Enum.Font.GothamBold
-    DestroyBtn.TextSize = 14
-
-    DestroyBtn.MouseButton1Click:Connect(function()
-        Control:Destroy()
-    end)
+RunService.Heartbeat:Connect(function()
+    local char = LocalPlayer.Character
+    if char and char:FindFirstChild("Humanoid") and char.Humanoid.Sit then
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            hrp.Velocity = Vector3.new(0, 0, 0)
+            hrp.RotVelocity = Vector3.new(0, 0, 0)
+        end
+    end
 end)
